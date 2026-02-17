@@ -231,12 +231,11 @@ Acesse:
 
 - Autenticação (JWT) para proteger cadastros
 - Upload de imagens dos itens
-- Docker Compose para subir API + MySQL + frontend com um comando
-- Paginação/ordenação no backend
-- Deploy em nuvem
 
 ---
 
 ## 👨‍💻 Autor
+
+- Gustavo Canhan
 
 Projeto desenvolvido como estudo prático de integração entre backend, desktop e frontend.
