@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET build
+**/bin/
+**/obj/
+
+# Node / Next
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
