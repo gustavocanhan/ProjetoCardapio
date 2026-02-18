@@ -1,0 +1,73 @@
+name: projetocardapio
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cardapio_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: cardapiodb
+      MYSQL_USER: cardapio
+      MYSQL_PASSWORD: cardapio123
+    ports:
+      - "3307:3306"
+    volumes:
+      - cardapio_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p1234 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: cardapio_migrator
+    working_dir: /src
+    volumes:
+      - ./API/Cardapio.Api/Cardapio.Api:/src
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=cardapiodb;User=cardapio;Password=cardapio123;"
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: []
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        dotnet restore /src/Cardapio.Api.csproj
+        dotnet tool install --tool-path /tools dotnet-ef --version 8.*
+        /tools/dotnet-ef database update --project /src/Cardapio.Api.csproj --startup-project /src/Cardapio.Api.csproj
+    restart: "no"
+
+  api:
+    build:
+      context: ./API/Cardapio.Api/Cardapio.Api
+      dockerfile: Dockerfile
+    container_name: cardapio_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5254
+      ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=cardapiodb;User=cardapio;Password=cardapio123;"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    ports:
+      - "5254:5254"
+
+  frontend:
+    build:
+      context: ./Frontend/cardapiofrontend
+      dockerfile: Dockerfile
+    container_name: cardapio_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: "http://api:5254/api"
+      NODE_ENV: development
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  cardapio_mysql_data:
